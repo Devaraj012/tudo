@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import mariadb
 from pydantic import BaseModel
-import mysql.connector
 import os
 from dotenv import load_dotenv
-load_dotenv
+load_dotenv()
 
 app = FastAPI()
 
@@ -19,13 +19,19 @@ app.add_middleware(
 
 # Database connection
 def get_db_connection():
-    return mysql.connector.connect(
-        host=os.getenv("HOST"),
-        port=int(os.getenv("PORT")),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        database=os.getenv("DB_NAME"),
-    )
+    try:
+        connection = mariadb.connect(  # Use mariadb.connect
+            host=os.getenv("DB_HOST"),
+            port=int(os.getenv("DB_PORT")),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DB_NAME")
+        )
+        return connection
+    except mariadb.Error as err:
+        # Handle connection errors robustly
+        print(f"Error connecting to MariaDB: {err}")
+        raise  # Re-raise the exception
 
 # Pydantic model for Todo item
 class TodoItem(BaseModel):
